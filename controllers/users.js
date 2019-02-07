@@ -48,8 +48,9 @@ module.exports = {
                             if(match) {
                                 status = 200;
                                 const payload = {user: user.name};
+                                const options = {expiresIn: '2d', issuer: 'https://scotch.io'}
                                 const secret = process.env.JWT_SECRET;
-                                const token = jwt.sign(payload, secret);
+                                const token = jwt.sign(payload, secret, options);
 
                                 result.token = token;
                                 result.status = status;
@@ -80,5 +81,40 @@ module.exports = {
                 res.status(status).send(result);
             }
         })
+    },
+    getAll: (req, res) => {
+        mongoose.connect(connUri, { useNewUrlParser: true}, (err) => {
+            let result = {};
+            let status = 200;
+            if(!err) {
+                const payload = req.decoded;
+                //TODO : log the payload here to verify that it's the same payload
+                //we used when we created the token
+                if(payload && payload.user === 'admin') {
+                    User.find({}, (err, users) => {
+                        if(!err) {
+                            result.status = status;
+                            result.error = err;
+                            result.result = users;
+                        } else {
+                            status = 500;
+                            result.status = status;
+                            result.error = err;
+                        }
+                        res.status(status).send(result);
+                    });
+                } else {
+                    status = 401;
+                    result.status = status;
+                    result.error = 'Authentication error';
+                    res.status(status).send(result);
+                }
+            } else {
+                status = 500;
+                result.status = status;
+                result.error = err;
+                res.status(status).send(result);
+            }   
+        });
     }
 }

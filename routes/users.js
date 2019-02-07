@@ -1,4 +1,5 @@
 const controller = require('../controllers/users');
+const validateToken = require('../utils').validateToken;
 
 module.exports = {
     add: (req, res) => {
@@ -8,9 +9,11 @@ module.exports = {
 
 module.exports = (router) => {
     router.route('/users')
-        .post(controller.add);
+        .post(controller.add)
+        .get(validateToken, controller.getAll);
 
     router.route('/login')
         .post(controller.login)
+        
 }
 
